@@ -18,29 +18,15 @@
 #### 一、 下载comment最新版
 #### 二、 解压comment到项目plugin目录下
 #### 三、 登录dsshop后台，进入插件列表
-#### 四、 在线安装（请保持dsshop的目录结构，如已部署到线上，请在本地测试环境安装，因涉及admin和uni-app，不建议在线安装）
-#### 五、 进入api目录执行数据库迁移使用
-
-```
-php artisan migrate
-```
-#### 六、进入后台，添加权限
-
-| **权限名称** | **API**        | **分组**   | **菜单图标** | **显示在菜单栏** |
-| ------------ | -------------- | ---------- | ------------ | ---------------- |
-| 评价         | Comment        | 工具       | 否           | 是               |
-| 评价列表     | CommentList    | 工具->评价 | 否           | 是               |
-| 评价回复     | CommentCreate  | 工具->评价 | 否           | 否               |
-| 评价操作     | CommentEdit    | 工具->评价 | 否           | 否               |
-| 评价删除     | Commentdestroy | 工具->评价 | 否           | 否               |
-
-#### 七、 进入后台，为管理员分配权限
-#### 八、 使用说明
+#### 四、 在线安装（请保持dsshop的目录结构，且在dev下运行，如已部署到线上，请在本地测试环境安装，因涉及文件操作，请不要在正式环境中进行插件操作）
+#### 五、 使用说明
 
 ##### 管理员南
 
 - 用户评价后，管理员可以通过评价管理对用户的评价内容进行审核，审核通过的才会在前台展示
 - 管理员可以把用户评价的内容进行删除，删除后该条评价和回复都会被删除
+
+#### 六、插件示例代码，以下仅供参考，请根据自己的业务自行实现
 
 ##### 运维指南
 
@@ -68,30 +54,134 @@ protected function schedule(Schedule $schedule){
 AUTOMATIC_EVALUATE_STATE=true   #是否开启自动评价功能
 AUTOMATIC_EVALUATE=12   #多少天后自动好评
 ```
+#### 网站
 
+###### 我的订单添加相关链接
 
+```vue
+#client\nuxt-web\mi\pages\user\indent\list.vue
+<template>
+	...
+	<el-tab-pane label="待收货" name="3"></el-tab-pane>
+    <el-tab-pane label="待评价" name="10"></el-tab-pane>
+	...
+	<div class="operation">
+		<div>
+			...
+            <div v-if="item.state === 1" class="button"><el-button :loading="buttonLoading" size="mini" round @click="cancelOrder(item)">取消订单</el-button></div>
+            <NuxtLink :to="{ path: '/comment/score', query: { id: item.id }}" v-if="item.state === 10"><div class="button"><el-button type="danger" size="mini" round>立即评价</el-button></div></NuxtLink>
+		</div>
+	</div>
+</template>
+```
 
-###### 增加评价统计代码
+###### 订单详情增加评价相关代码
 
-```php
-#api\app\Http\Controllers\v1\Client\GoodIndentController.php
-public function quantity()
-{
+```vue
+#client\nuxt-web\mi\pages\user\indent\detail.vue
+<template>
+	...
+	<div :class="{on:indent.state === 5 || indent.state === 11}">
+        <div class="chunk">交易成功</div>
+        <div class="name"></div>
+    </div>
+</template>
+```
+###### 商品详情添加评价相关代码
+
+```js
+#client\nuxt-web\mi\pages\product\js\detail.js
+import Comment from '@/pages/comment/list'\
+import {good} from '@/api/comment'
+export default {
+  components: {
     ...
-    'waitforreceiving' => 0, //待收货
-    'remainEvaluated' => 0, //待评价
-    ...
-    } else if ($indent->state == GoodIndent::GOOD_INDENT_STATE_TAKE) {
-    	$return['waitforreceiving'] += 1;
-	} else if ($indent->state == GoodIndent::GOOD_INDENT_STATE_EVALUATE) {
-    	$return['remainEvaluated'] += 1;
-	}
+    Comment
+  },
+  data() {
+    return {
+        commentTotal: 0
+    }
+  },
+  mounted() {
+      this.getCommentTotal()
+  },
+  methods: {
+    // 获取评价总数
+    getCommentTotal(){
+      good({
+        limit: 1,
+        page: 1,
+        good_id:$nuxt.$route.query.id,
+        sort:'-created_at'
+      }).then(response => {
+        this.commentTotal = response.total
+      })
+    }
+  }
+}
+```
+```vue
+#client\nuxt-web\mi\pages\product\detail.vue
+<template>
+	...
+	<div class="product-box">
+      <div class="tab">
+        <span :class="{on:tab === 1}" @click="cutTab(1)">商品详情</span>
+        <el-divider direction="vertical"></el-divider>
+        <span :class="{on:tab === 2}" @click="cutTab(2)">评价({{commentTotal}})</span>
+      </div>
+      <div class="detail-box">
+        <div class="container" v-loading="tabLoading">
+          <div v-if="tab === 1" v-html="goodDetail.details"></div>
+          <div v-else-if="tab === 2">
+            <Comment></Comment>
+          </div>
+        </div>
+      </div>
+    </div>
+</template>
+```
+
+
+
+#### 移动端
+
+###### pages.json添加路由
+
+```json
+#client\uni-app\mix-mall\pages.json
+,{
+    "path": "pages/comment/score",
+    "style": {
+        "navigationBarTitleText": "评价",
+        "app-plus": {
+            "bounce": "none"
+        }
+    }
+}
+, {
+    "path": "pages/comment/list",
+    "style": {
+        "navigationBarTitleText": "评价列表",
+        "enablePullDownRefresh": true,
+        "onReachBottomDistance": 50
+    }
 }
 ```
 
+###### 个人中心增加评价链接及待评价数量
 ```vue
-#trade\Dsshop\pages\user\user.vue
+#client\uni-app\mix-mall\pages\user\user.vue
 <template>
+	<!-- 订单 -->
+	<view class="order-section">
+        ...
+        <view class="order-item" @click="navTo('/pages/indent/list?state=4')" hover-class="common-hover"  :hover-stay-time="50">
+            <text class="yticon icon-yishouhuo"><text v-if="quantity.remainEvaluated" class="cu-tag badge">{{quantity.remainEvaluated}}</text></text>
+            <text>待评价</text>
+        </view>
+    </view>
 </template>
 <script>
 export default {
@@ -129,33 +219,14 @@ export default {
 </script>
 ```
 
-
-
-###### 添加待评价和评价按钮
+###### 订单列表增加评价按钮
 
 ```vue
-#trade\Dsshop\pages\user\user.vue
-<template>
-	<!-- 订单 -->
-	<view class="order-section">
-        ...
-        <view class="order-item" @click="navTo('/pages/order/order?state=4')" hover-class="common-hover"  :hover-stay-time="50">
-            <text class="yticon icon-yishouhuo"><text v-if="quantity.remainEvaluated" class="cu-tag badge">{{quantity.remainEvaluated}}</text></text>
-            <text>待评价</text>
-        </view>
-    </view>
-</template>
-<script>
-
-</script>
-```
-
-```vue
-#trade\Dsshop\pages\order\order.vue
+#client\uni-app\mix-mall\pages\indent\list.vue
 <template>
 	<view class="action-box b-t">
         ...
-        <block v-if="item.state === 4">
+        <block v-if="item.state === 10">
         	<button class="action-btn recom" @tap="goScore(item)">立即评价</button>
         </block>
     </view>
@@ -167,7 +238,7 @@ export default {
 			navList: [
                 ...
             	{
-                    state: 4,
+                    state: 10,
                     text: '待评价',
                     loadingType: 'more',
                     orderList: []
@@ -179,7 +250,7 @@ export default {
         // 评价
         goScore(item){
             uni.navigateTo({
-                url: `/pages/order/score?id=${item.id}`
+                url: `/pages/comment/score?id=${item.id}`
             })
         },
         //评价成功后回调
@@ -191,16 +262,16 @@ export default {
 }
 </script>
 ```
-
+###### 订单详情增加评价按钮
 ```vue
-#trade\Dsshop\pages\order\showOrder.vue
+#client\uni-app\mix-mall\pages\indent\detail.vue
 <template>
 	<!-- 底部 -->
-	<view v-if="indentList.state === 1 || indentList.state === 3 || indentList.state === 4" class="footer">
+	<view v-if="indentList.state === 1 || indentList.state === 3 || indentList.state === 10" class="footer">
         <view class="price-content"></view>
         <navigator v-if="indentList.state === 1" :url="'/pages/money/pay?id=' + indentList.id" hover-class="none" class="submit">立即支付</navigator>
         <view v-else-if="indentList.state === 3" class="submit" @click="confirmReceipt(indentList)">确认收货</view>
-        <view v-else-if="indentList.state === 4" class="submit" @click="goScore(indentList)">立即评价</view>
+        <view v-else-if="indentList.state === 10" class="submit" @click="goScore(indentList)">立即评价</view>
     </view>
 </template>
 <script>
@@ -209,7 +280,7 @@ export default {
         // 评价
         goScore(item){
             uni.navigateTo({
-                url: `/pages/order/score?id=${item.id}`
+                url: `/pages/comment/score?id=${item.id}`
             })
         },
         //评价成功后回调
@@ -224,7 +295,7 @@ export default {
 ###### 添加后台订单进度对评价的支持
 
 ```vue
-#admin\src\views\IndentManagement\Indent\components\Detail.vue
+#admin\vue2\element-admin-v3\src\views\IndentManagement\Indent\components\Detail.vue
 <template>
 </template>
 <script>
@@ -236,7 +307,7 @@ export default {
     methods: {
 		getList() {
             case 5:
-            case 10:
+            case 11:
               this.order_progress = 4
               break
         }
@@ -269,7 +340,7 @@ public function getStateShowAttribute()
 ###### 添加商品评价关联
 
 ```php
-#app\Models\v1\GoodIndentCommodity.php
+#api\app\Models\v1\GoodIndentCommodity.php
 /**
   * 获取评价
   */
@@ -277,11 +348,28 @@ public function Comment(){
     return $this->morphOne('App\Models\v1\Comment', 'model');
 }
 ```
+###### 增加评价统计代码
+
+```php
+#api\app\Http\Controllers\v1\Client\GoodIndentController.php
+public function quantity()
+{
+    ...
+    'waitforreceiving' => 0, //待收货
+    'remainEvaluated' => 0, //待评价
+    ...
+    } else if ($indent->state == GoodIndent::GOOD_INDENT_STATE_TAKE) {
+    	$return['waitforreceiving'] += 1;
+	} else if ($indent->state == GoodIndent::GOOD_INDENT_STATE_EVALUATE) {
+    	$return['remainEvaluated'] += 1;
+	}
+}
+```
 
 ###### 添加商品评价记录
 
 ```vue
-#trade\Dsshop\pages\product\product.vue
+#client\uni-app\mix-mall\pages\product\detail.vue
 <template>
 		<!-- 评价 -->
 		<view class="eva-section">
@@ -305,7 +393,7 @@ public function Comment(){
 		</view>
 </template>
 <script>
-import Comment from '../../api/comment'
+import {good as commentGood} from '@/api/comment'
 export default {
     data() {
 		return {
@@ -322,18 +410,17 @@ export default {
 	},
     methods: {
 		// 获取评价列表
-		goodEvaluate(){
-			const that = this
-			Comment.good({
-				limit: 2,
-				page: 1,
-				good_id:that.id,
-				sort:'-created_at'
-			},function(res){
-				that.commentList = res.data
-				that.commentTotal = res.total
-			})
-		}
+		commentGood({
+            limit: 2,
+            page: 1,
+            good_id:this.id,
+            sort:'-created_at'
+        },function(res){
+            if(res.total>0){
+                this.commentList = res.data
+                this.commentTotal = res.total
+            }
+        })
     }
 }
 </script>
