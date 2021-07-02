@@ -3,11 +3,10 @@ import Qs from 'qs'
 export function getList(query) {
   return request({
     url: 'comment',
-    method: 'get',
+    method: 'GET',
     params: query
   })
 }
-
 export function create(data) {
   data = Qs.parse(data)
   return request({
@@ -16,20 +15,19 @@ export function create(data) {
     data
   })
 }
-
-export function edit(id, data) {
+export function edit(data) {
   data = Qs.parse(data)
   return request({
-    url: 'comment/' + id,
+    url: 'comment/' + data.id,
     method: 'POST',
     data
   })
 }
-
-export function destroy(id) {
+export function destroy(id, data) {
+  data = Qs.parse(data)
   return request({
     url: 'comment/destroy/' + id,
-    method: 'POST'
+    method: 'POST',
+    data
   })
 }
-

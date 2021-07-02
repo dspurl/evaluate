@@ -1,10 +1,13 @@
 #评价
+
 ## 说明
+
 - 该插件依赖dsshop项目，而非通用插件
-- 支持版本:dsshop v2.0.0及以上
-- 已同步版本：dsshop v2.0.0
+- 支持版本:dsshop v2.2.0及以上
+- 已同步版本：dsshop v2.2.0
 
 ## 功能介绍
+
 - 支持对商品进行评价，平台可通过后台进行回复
 - 支持自动评价功能，默认收货12后天自动好评
 - 支持为同一订单多件商品进行评价
@@ -15,10 +18,15 @@
 - 数据表为灵活设计，即可以支持其它评价，只需要设置`model_type`和`model_id `即可
 
 ## 使用说明
+
 #### 一、 下载comment最新版
+
 #### 二、 解压comment到项目plugin目录下
+
 #### 三、 登录dsshop后台，进入插件列表
+
 #### 四、 在线安装（请保持dsshop的目录结构，且在dev下运行，如已部署到线上，请在本地测试环境安装，因涉及文件操作，请不要在正式环境中进行插件操作）
+
 #### 五、 使用说明
 
 ##### 管理员南
@@ -54,6 +62,7 @@ protected function schedule(Schedule $schedule){
 AUTOMATIC_EVALUATE_STATE=true   #是否开启自动评价功能
 AUTOMATIC_EVALUATE=12   #多少天后自动好评
 ```
+
 #### 网站
 
 ###### 我的订单添加相关链接
@@ -87,11 +96,12 @@ AUTOMATIC_EVALUATE=12   #多少天后自动好评
     </div>
 </template>
 ```
+
 ###### 商品详情添加评价相关代码
 
 ```js
 #client\nuxt-web\mi\pages\product\js\detail.js
-import Comment from '@/pages/comment/list'\
+import Comment from '@/pages/comment/list'
 import {good} from '@/api/comment'
 export default {
   components: {
@@ -121,6 +131,7 @@ export default {
   }
 }
 ```
+
 ```vue
 #client\nuxt-web\mi\pages\product\detail.vue
 <template>
@@ -171,6 +182,7 @@ export default {
 ```
 
 ###### 个人中心增加评价链接及待评价数量
+
 ```vue
 #client\uni-app\mix-mall\pages\user\user.vue
 <template>
@@ -191,26 +203,18 @@ export default {
                 all: 0,
                 obligation: 0,
                 waitdeliver: 0,
-                waitforreceiving: 0
+                waitforreceiving: 0,
+		remainEvaluated: 0
             },
 		};
 	},
     onShow(){
-        if(this.hasLogin){
-            this.getUser()
-            this.browse()
-            this.noticeConut()
-            this.getQuantity()
-            this.getUserCouponCount()
-        } else {
-            this.browseList = []
-            this.user = {}
-            this.noticeNumber = null
             this.quantity = {
                 all: 0,
                 obligation: 0,
                 waitdeliver: 0,
-                waitforreceiving: 0
+                waitforreceiving: 0,
+		remainEvaluated: 0
             }
         }
 
@@ -262,7 +266,9 @@ export default {
 }
 </script>
 ```
+
 ###### 订单详情增加评价按钮
+
 ```vue
 #client\uni-app\mix-mall\pages\indent\detail.vue
 <template>
@@ -292,79 +298,6 @@ export default {
 }
 </script>
 ```
-###### 添加后台订单进度对评价的支持
-
-```vue
-#admin\vue2\element-admin-v3\src\views\IndentManagement\Indent\components\Detail.vue
-<template>
-</template>
-<script>
-export default {
-    data() {
-		return {
-		};
-	},
-    methods: {
-		getList() {
-            case 5:
-            case 11:
-              this.order_progress = 4
-              break
-        }
-    }
-}
-</script>
-```
-###### 添加订单评价相关状态
-
-```php
-#\app\Models\v1\GoodIndent.php
-const GOOD_INDENT_STATE_EVALUATE = 10; //状态：待评价
-const GOOD_INDENT_STATE_HAVE_EVALUATION = 11; //状态：已评价
-const GOOD_INDENT_IS_AUTOMATIC_EVALUATE_YES = 1; //自动好评：是
-const GOOD_INDENT_IS_AUTOMATIC_EVALUATE_NO = 0; //自动好评：否
-public function getStateShowAttribute()
-{
-   ...
-	case static::GOOD_INDENT_STATE_REFUND_FAILURE:
-    	$return = '退款失败';
-    	break;
-    case static::GOOD_INDENT_STATE_EVALUATE:
-        $return = '待评价';
-        break;
-    case static::GOOD_INDENT_STATE_HAVE_EVALUATION:
-    	$return = '已评价';
-    	break;
-}
-```
-###### 添加商品评价关联
-
-```php
-#api\app\Models\v1\GoodIndentCommodity.php
-/**
-  * 获取评价
-  */
-public function Comment(){
-    return $this->morphOne('App\Models\v1\Comment', 'model');
-}
-```
-###### 增加评价统计代码
-
-```php
-#api\app\Http\Controllers\v1\Client\GoodIndentController.php
-public function quantity()
-{
-    ...
-    'waitforreceiving' => 0, //待收货
-    'remainEvaluated' => 0, //待评价
-    ...
-    } else if ($indent->state == GoodIndent::GOOD_INDENT_STATE_TAKE) {
-    	$return['waitforreceiving'] += 1;
-	} else if ($indent->state == GoodIndent::GOOD_INDENT_STATE_EVALUATE) {
-    	$return['remainEvaluated'] += 1;
-	}
-}
-```
 
 ###### 添加商品评价记录
 
@@ -376,7 +309,7 @@ public function quantity()
 			<view class="e-header">
 				<text class="tit">评价</text>
 				<text>({{commentTotal}})</text>
-				<navigator hover-class="none" class="tip" :url="'comment?id='+ id">查看全部</navigator>
+				<navigator hover-class="none" class="tip" :url="'/pages/comment/list?id='+ id">查看全部</navigator>
 				<text class="yticon icon-you"></text>
 			</view>
 			<view class="eva-box" v-for="(item,index) in commentList" :key="index">
@@ -410,20 +343,100 @@ export default {
 	},
     methods: {
 		// 获取评价列表
-		commentGood({
-            limit: 2,
-            page: 1,
-            good_id:this.id,
-            sort:'-created_at'
-        },function(res){
-            if(res.total>0){
-                this.commentList = res.data
-                this.commentTotal = res.total
-            }
-        })
+		goodEvaluate(){
+			const that = this
+			commentGood({
+				limit: 2,
+				page: 1,
+				good_id:this.id,
+				sort:'-created_at'
+			},function(res){
+				if(res.total>0){
+					that.commentList = res.data
+					that.commentTotal = res.total
+				}
+			})
+		},
     }
 }
 </script>
+```
+
+###### 添加后台订单进度对评价的支持
+
+```vue
+#admin\vue2\element-admin-v3\src\views\IndentManagement\Indent\components\Detail.vue
+<template>
+</template>
+<script>
+export default {
+    data() {
+		return {
+		};
+	},
+    methods: {
+		getList() {
+            case 5:
+            case 11:
+              this.order_progress = 4
+              break
+        }
+    }
+}
+</script>
+```
+
+###### 添加订单评价相关状态
+
+```php
+#\app\Models\v1\GoodIndent.php
+const GOOD_INDENT_STATE_EVALUATE = 10; //状态：待评价
+const GOOD_INDENT_STATE_HAVE_EVALUATION = 11; //状态：已评价
+const GOOD_INDENT_IS_AUTOMATIC_EVALUATE_YES = 1; //自动好评：是
+const GOOD_INDENT_IS_AUTOMATIC_EVALUATE_NO = 0; //自动好评：否
+public function getStateShowAttribute()
+{
+   ...
+	case static::GOOD_INDENT_STATE_REFUND_FAILURE:
+    	$return = '退款失败';
+    	break;
+    case static::GOOD_INDENT_STATE_EVALUATE:
+        $return = '待评价';
+        break;
+    case static::GOOD_INDENT_STATE_HAVE_EVALUATION:
+    	$return = '已评价';
+    	break;
+}
+```
+
+###### 添加商品评价关联
+
+```php
+#api\app\Models\v1\GoodIndentCommodity.php
+/**
+  * 获取评价
+  */
+public function Comment(){
+    return $this->morphOne('App\Models\v1\Comment', 'model');
+}
+```
+
+###### 增加评价统计代码
+
+```php
+#api\app\Http\Controllers\v1\Client\GoodIndentController.php
+public function quantity()
+{
+    ...
+    'waitforreceiving' => 0, //待收货
+    'remainEvaluated' => 0, //待评价
+    ...
+    } else if ($indent->state == GoodIndent::GOOD_INDENT_STATE_TAKE) {
+    	$return['waitforreceiving'] += 1;
+	} else if ($indent->state == GoodIndent::GOOD_INDENT_STATE_EVALUATE) {
+    	$return['remainEvaluated'] += 1;
+	}
+}
 ```
 
 配置模板通知
@@ -446,6 +459,9 @@ WECHAT_SUBSCRIPTION_INFORMATION_ADMIN_ORDER_EVALUATE=
 
 
 ## 如何更新插件
+
 - 将最新版的插件下载，并替换老的插件，后台可一键升级
+
 ## 如何卸载插件
+
 - 后台可一键卸载

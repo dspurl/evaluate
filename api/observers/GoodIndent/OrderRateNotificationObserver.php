@@ -1,12 +1,9 @@
 <?php
-
 namespace App\Observers\GoodIndent;
-
-use App\Models\v1\GoodIndent;
 use App\Models\v1\User;
 use App\Notifications\InvoicePaid;
 use Illuminate\Http\Request;
-
+use App\Models\v1\GoodIndent;
 /**
  * order rate notification
  * 订单评价通知
@@ -17,12 +14,13 @@ class OrderRateNotificationObserver
 {
     protected $request;
     protected $route = [
+        // 这里配置需要执行该观察者的路由
         'app/goodIndent/receipt',
     ];
     protected $execute = false;
-
     public function __construct(Request $request)
     {
+        // 是否执行观察者，默认为不执行，只有路由存在于$route时才会触发,并且在非http请求时不会触发
         if (!app()->runningInConsole()) {
             $this->request = $request;
             $path = explode("admin", $request->path());
@@ -37,7 +35,6 @@ class OrderRateNotificationObserver
             }
         }
     }
-
     public function updated(GoodIndent $goodIndent)
     {
         // 当状态为已完成时触发

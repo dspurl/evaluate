@@ -1,8 +1,1 @@
-{
-    "name": "评价",
-    "abbreviation": "comment",
-    "describe": "统一评价插件，现支持商品评价，可扩展支持其它各类评价/评论",
-    "url": "https://github.com/dspurl/comment",
-    "download": "",
-    "versions": "2.0.0"
-}
+{"name":"\u8bc4\u4ef7","abbreviation":"comment","describe":"\u8bc4\u4ef7\u529f\u80fd\uff0c\u4e0d\u4ec5\u9650\u4e8e\u5546\u54c1","versions":"2.2.0","author":"dspurl"}

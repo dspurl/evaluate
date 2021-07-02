@@ -27,7 +27,8 @@ class AddEvaluateTimeToGoodIndentsTable extends Migration
     public function down()
     {
         Schema::table('good_indents', function (Blueprint $table) {
-            //
+            $table->dropColumn('evaluate_time');
+            $table->dropColumn('is_automatic_evaluate');
         });
     }
 }

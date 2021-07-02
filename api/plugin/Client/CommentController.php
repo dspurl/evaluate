@@ -10,9 +10,10 @@ use App\Models\v1\Resource;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+
 /**
- * comment
- * 评价
+ * Comment
+ * 评论
  * Class CommentController
  * @package App\Http\Controllers\v1\Plugin\Admin
  */
@@ -20,7 +21,7 @@ class CommentController extends Controller
 {
     /**
      * CommentCreate
-     * 评价
+     * 评论评价
      * @param $id
      * @param Request $request
      * @return \Illuminate\Http\Response
@@ -70,9 +71,10 @@ class CommentController extends Controller
     }
 
     /**
-     * 获取需要评价的商品列表
+     * CommentDetail
+     * 评论详情
      * @param $id
-     * @return string
+     * @return \Illuminate\Http\Response
      * @queryParam  id int 商品ID
      */
     public function detail($id)
@@ -100,7 +102,7 @@ class CommentController extends Controller
             $q->orderBy($sortFormatConversion[0], $sortFormatConversion[1]);
         }
         $paginate = $q->where('good_id', $request->good_id)->whereHas('GoodIndent', function ($q) {
-            $q->where('state', GoodIndent::GOOD_INDENT_STATE_ACCOMPLISH);
+            $q->where('state', GoodIndent::GOOD_INDENT_STATE_HAVE_EVALUATION);
         })->with(['goodSku' => function ($q) {
             $q->select('id', 'product_sku');
         }, 'Comment' => function ($q) {

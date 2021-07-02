@@ -1,27 +1,24 @@
 <?php
-
 namespace App\Observers\GoodIndent;
-
 use App\Models\v1\Comment;
-use App\Models\v1\GoodIndent;
-use App\Models\v1\User;
-use App\Notifications\InvoicePaid;
 use Illuminate\Http\Request;
-
+use App\Models\v1\GoodIndent;
 /**
- * user evaluate notification
+ * automatic evaluate
  * 自动评价处理
  * Class AutomaticEvaluateObserver
- * @package App\Observers\Comment
+ * @package App\Observers\GoodIndent
  */
 class AutomaticEvaluateObserver
 {
     protected $request;
-    protected $route = [];
+    protected $route = [
+        // 这里配置需要执行该观察者的路由
+    ];
     protected $execute = false;
-
     public function __construct(Request $request)
     {
+        // 是否执行观察者，默认为不执行，只有路由存在于$route时才会触发,并且在非http请求时不会触发
         if (!app()->runningInConsole()) {
             $this->request = $request;
             $path = explode("admin", $request->path());
@@ -36,7 +33,6 @@ class AutomaticEvaluateObserver
             }
         }
     }
-
     public function updated(GoodIndent $goodIndent)
     {
         if(app()->runningInConsole() && $goodIndent->state == GoodIndent::GOOD_INDENT_STATE_HAVE_EVALUATION){

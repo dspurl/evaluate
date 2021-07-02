@@ -3,14 +3,16 @@
 namespace App\Http\Controllers\v1\Plugin\Admin;
 
 use App\Code;
+use App\Http\Requests\v1\SubmitCommentRequest;
 use App\Models\v1\Comment;
+use App\Models\v1\Resource;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 
 /**
- * comment
- * 评价
+ * Comment
+ * 评论
  * Class CommentController
  * @package App\Http\Controllers\v1\Plugin\Admin
  */
@@ -95,19 +97,26 @@ class CommentController extends Controller
 
     /**
      * CommentDestroy
-     * 评价删除
-     * @param  int $id
+     * 评论删除
+     * @param int $id
+     * @param Request $request
      * @return \Illuminate\Http\Response
-     * @queryParam  id int 评价ID
+     * @queryParam  id int 评论ID
      */
-    public function destroy($id)
+    public function destroy($id, Request $request)
     {
-        if (!$id) {
-            return resReturn(0, '参数有误', Code::CODE_MISUSE);
-        }
-        $return = DB::transaction(function () use ($id) {
-            Comment::destroy($id);
-            Comment::where('parent_id', $id)->delete();
+        $return = DB::transaction(function () use ($request, $id) {
+            if ($id > 0) {
+                Comment::destroy($id);
+                Comment::where('parent_id', $id)->delete();
+            } else {
+                if (!$request->all()) {
+                    return resReturn(0, '请选择内容', Code::CODE_WRONG);
+                }
+                $idData = collect($request->all())->pluck('id');
+                Comment::destroy($idData);
+                Comment::whereIn('parent_id', $idData)->delete();
+            }
             return 1;
         }, 5);
         if ($return == 1) {
