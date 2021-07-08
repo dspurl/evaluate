@@ -1,4 +1,4 @@
-#评价
+# 评价
 
 ## 说明
 
@@ -62,6 +62,44 @@ AUTOMATIC_EVALUATE=12   #多少天后自动好评
 ```
 
 #### 网站
+
+###### 引入字体图标
+```js
+#client\nuxt-web\mi\nuxt.config.js
+export default {
+	head: {
+        link: [
+            { rel: "stylesheet", href: "//at.alicdn.com/t/font_2660877_ac0kim4l5g.css" }
+        ]
+    }
+}
+```
+
+###### 个人中心增加评价入口
+
+```vue
+#client\nuxt-web\mi\pages\user\portal.vue
+<template>
+	<div class="indent-box">
+      <div class="li">
+        <div class="icon bg-pink"><i class="iconfont dsshop-daishouhuofuben"></i></div>
+        <div class="describe">
+          <div class="name">待收货的订单：<span>{{ quantity.waitforreceiving ? quantity.waitforreceiving : 0 }}</span></div>
+          <NuxtLink class="link" :to="{ path: '/user/indent/list', query: { index: 3 }}">查看待收货订单 ></NuxtLink>
+        </div>
+      </div>
+      <div class="li">
+        <div class="icon bg-olive"><i class="iconfont icon-youhuiquan"></i></div>
+        <div class="describe">
+          <div class="name">待评价的订单：<span>{{ quantity.remainEvaluated ? quantity.remainEvaluated : 0 }}</span></div>
+          <NuxtLink class="link" :to="{ path: '/user/indent/list', query: { index: 4 }}">查看待评价订单 ></NuxtLink>
+        </div>
+      </div>
+    </div>
+</template>
+```
+
+
 
 ###### 我的订单添加相关链接
 
@@ -453,8 +491,6 @@ public function quantity()
 WECHAT_SUBSCRIPTION_INFORMATION_ORDER_EVALUATE=
 WECHAT_SUBSCRIPTION_INFORMATION_ADMIN_ORDER_EVALUATE=
 ```
-
-
 
 ## 如何更新插件
 
